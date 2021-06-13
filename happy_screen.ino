@@ -29,6 +29,89 @@
 Inkplate display(INKPLATE_3BIT); // Create an object on Inkplate library and also set library into 1 Bit mode (BW)
 SdFile file;                     // Create SdFile object used for accessing files on SD card
 
+#include <time.h>
+#include <string.h>
+#include <stdio.h>
+
+char *ssid = "dfn-06184";
+char *pass = "2ddc-cy79-omp4-cpxg";
+
+void connect() {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, pass);
+
+    int cnt = 0;
+    Serial.print(F("Waiting for WiFi to connect..."));
+    while ((WiFi.status() != WL_CONNECTED))
+    {
+        Serial.print(F("."));
+        delay(1000);
+        ++cnt;
+
+        if (cnt == 20)
+        {
+            Serial.println("Can't connect to WIFI, restarting");
+            delay(100);
+            ESP.restart();
+        }
+    }
+    Serial.println(F(" connected"));
+}
+
+void syncTime()
+{
+    // Used for setting correct time
+    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+
+    Serial.print(F("Waiting for NTP time sync: "));
+    time_t nowSecs = time(nullptr);
+    while (nowSecs < 8 * 3600 * 2)
+    {
+        // Print a dot every half a second while time is not set
+        delay(500);
+        Serial.print(F("."));
+        yield();
+        nowSecs = time(nullptr);
+    }
+
+    Serial.println();
+
+    // Used to store time info
+    struct tm timeinfo;
+    gmtime_r(&nowSecs, &timeinfo);
+
+    Serial.print(F("Current time: "));
+    Serial.print(asctime(&timeinfo));
+}
+
+double seconds_to_hour(int hour) {
+    // Get current time (now)
+    time_t now = time(NULL);
+    int time_zone = 2;
+
+    struct tm specific_hour_time;
+    struct tm now_time;
+    gmtime_r(&now, &specific_hour_time);
+    gmtime_r(&now, &now_time);
+
+    specific_hour_time.tm_hour = hour - time_zone;
+    specific_hour_time.tm_min = 0;
+    specific_hour_time.tm_sec = 0;
+
+    Serial.println(asctime(&now_time));
+    Serial.println(asctime(&specific_hour_time));
+
+    //display.println(asctime(&specific_hour_time));
+
+    double delta = difftime(mktime(&specific_hour_time), now);
+    Serial.println(delta);
+    if (delta < 0) {
+      return 24.0 * 3600.0 - abs(delta);
+    } else {
+      return delta;
+    }
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -49,14 +132,20 @@ void setup()
 
     display.println("SD Card OK! Reading image...");
     display.partialUpdate();
+    connect();
+    syncTime();
 
     int randNumber = random(34);
     char buffer[13];
     sprintf(buffer, "image%03d.jpg", randNumber);
     showImage(buffer);
     
-    Serial.println("Going to sleep");
-    esp_sleep_enable_timer_wakeup(24ll * 60 * 1000 * 1000);
+    
+    double time_to_four = seconds_to_hour(4);
+    Serial.println("Going to sleep for seconds");
+    Serial.println(time_to_four);
+    esp_sleep_enable_timer_wakeup(time_to_four * 1000 * 1000);
+    //esp_sleep_enable_timer_wakeup(24 * 3600 * 1000 * 1000);
     esp_deep_sleep_start();
 }
 

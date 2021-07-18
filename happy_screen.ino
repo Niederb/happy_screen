@@ -25,7 +25,10 @@
 #endif
 
 #include "Inkplate.h"            //Include Inkplate library to the sketch
+#include "driver/rtc_io.h"
 #include "SdFat.h"               //Include library for SD card
+#include <esp_wifi.h>
+#include "driver/adc.h"
 Inkplate display(INKPLATE_3BIT); // Create an object on Inkplate library and also set library into 1 Bit mode (BW)
 SdFile file;                     // Create SdFile object used for accessing files on SD card
 
@@ -134,8 +137,16 @@ void setup()
     display.partialUpdate();
     connect();
     syncTime();
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
 
-    int randNumber = random(34);
+    Serial.println("Battery level:");
+    Serial.println(display.readBattery());
+    
+    //esp_wifi_stop();
+    // Max value is exclusive
+    int number_files = countFiles();
+    int randNumber = random(1, number_files + 1);
     char buffer[13];
     sprintf(buffer, "image%03d.jpg", randNumber);
     showImage(buffer);
@@ -144,9 +155,15 @@ void setup()
     double time_to_four = seconds_to_hour(4);
     Serial.println("Going to sleep for seconds");
     Serial.println(time_to_four);
-    esp_sleep_enable_timer_wakeup(time_to_four * 1000 * 1000);
+    //esp_sleep_enable_timer_wakeup(time_to_four * 1000 * 1000);
     //esp_sleep_enable_timer_wakeup(24 * 3600 * 1000 * 1000);
-    esp_deep_sleep_start();
+    rtc_gpio_isolate(GPIO_NUM_12);
+    esp_wifi_stop();  
+    adc_power_off();
+    //esp_deep_sleep(time_to_four * 1000 * 1000);
+    //esp_deep_sleep_start();
+    esp_sleep_enable_timer_wakeup(time_to_four * 1000 * 1000); // Activate wake-up timer -- wake up after 20s here
+    esp_deep_sleep_start(); 
 }
 
 void showImage(const String& image_name)
@@ -163,6 +180,22 @@ void showImage(const String& image_name)
     display.display();
 }
 
+int countFiles() {
+  File root;
+  int root_file_count = 0;
+  if (!root.open("/")) {
+    return 0;
+  }
+  while (file.openNext(&root, O_RDONLY)) {
+    if (!file.isHidden()) {
+      root_file_count++;
+    }
+    file.close();
+  }
+  Serial.println("Number of files in root:");
+  Serial.println(root_file_count);
+  return root_file_count;
+}
 
 void loop()
 {

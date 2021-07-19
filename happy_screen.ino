@@ -39,6 +39,7 @@ SdFile file;                     // Create SdFile object used for accessing file
 
 /*
 // Create a config.h file with the following contents
+#pragma once
 char *ssid = ""; // SSD of your WIFI network
 char *pass = ""; // Password to your WIFI network
 int time_zone = 2; // Your UTC timezone

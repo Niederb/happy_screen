@@ -37,9 +37,9 @@ SdFile file;                     // Create SdFile object used for accessing file
 #include <string.h>
 #include <stdio.h>
 
-char *ssid = "";
-char *pass = "";
+#include "config.h"
 
+/// Connect to the WIFI network specified in config.h
 void connect() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, pass);
@@ -62,6 +62,7 @@ void connect() {
     Serial.println(F(" connected"));
 }
 
+/// Synchronize device time with a time server
 void syncTime()
 {
     // Used for setting correct time
@@ -88,10 +89,12 @@ void syncTime()
     Serial.print(asctime(&timeinfo));
 }
 
+/// Calculate the number of seconds until hour is next time
+/// For example: How many seconds until 18:00 (today or tomorrow, depending if 18:00 already passed today)
+/// 24 hour time format
 double seconds_to_hour(int hour) {
     // Get current time (now)
     time_t now = time(NULL);
-    int time_zone = 2;
 
     struct tm specific_hour_time;
     struct tm now_time;
@@ -138,32 +141,31 @@ void setup()
     display.partialUpdate();
     connect();
     syncTime();
+
+    // Shutdown WIFI and GPIO to save power
     WiFi.disconnect();
     WiFi.mode(WIFI_OFF);
+    rtc_gpio_isolate(GPIO_NUM_12);
+    esp_wifi_stop();  
+    adc_power_off();
 
     Serial.println("Battery level:");
     Serial.println(display.readBattery());
-    
-    //esp_wifi_stop();
+
     // Max value is exclusive
     int number_files = countFiles();
     int randNumber = random(1, number_files + 1);
     char buffer[13];
     sprintf(buffer, "image%03d.jpg", randNumber);
     showImage(buffer);
-    
-    
-    double time_to_four = seconds_to_hour(4);
+
+    double time_to_change = seconds_to_hour(change_hour);
     Serial.println("Going to sleep for seconds");
-    Serial.println(time_to_four);
-    //esp_sleep_enable_timer_wakeup(time_to_four * 1000 * 1000);
-    //esp_sleep_enable_timer_wakeup(24 * 3600 * 1000 * 1000);
-    rtc_gpio_isolate(GPIO_NUM_12);
-    esp_wifi_stop();  
-    adc_power_off();
+    Serial.println(time_to_change);
+
     //esp_deep_sleep(time_to_four * 1000 * 1000);
     //esp_deep_sleep_start();
-    esp_sleep_enable_timer_wakeup(time_to_four * 1000 * 1000); // Activate wake-up timer -- wake up after 20s here
+    esp_sleep_enable_timer_wakeup(time_to_change * 1000 * 1000);
     esp_deep_sleep_start(); 
 }
 
@@ -181,6 +183,7 @@ void showImage(const String& image_name)
     display.display();
 }
 
+// Count the number of files in the root directory
 int countFiles() {
   File root;
   int root_file_count = 0;

@@ -37,6 +37,13 @@ SdFile file;                     // Create SdFile object used for accessing file
 #include <string.h>
 #include <stdio.h>
 
+/*
+// Create a config.h file with the following contents
+char *ssid = ""; // SSD of your WIFI network
+char *pass = ""; // Password to your WIFI network
+int time_zone = 2; // Your UTC timezone
+int change_hour = 4; // At which hour you want to change the image (range 0 to 23)
+*/
 #include "config.h"
 
 /// Connect to the WIFI network specified in config.h

@@ -24,11 +24,12 @@
 #error "Wrong board selection for this example, please select Inkplate 6 in the boards menu."
 #endif
 
-#include "Inkplate.h"            //Include Inkplate library to the sketch
+#include "Inkplate.h"
 #include "driver/rtc_io.h"
-#include "SdFat.h"               //Include library for SD card
+#include "SdFat.h"
 #include <esp_wifi.h>
 #include "driver/adc.h"
+
 Inkplate display(INKPLATE_3BIT); // Create an object on Inkplate library and also set library into 1 Bit mode (BW)
 SdFile file;                     // Create SdFile object used for accessing files on SD card
 
@@ -36,8 +37,8 @@ SdFile file;                     // Create SdFile object used for accessing file
 #include <string.h>
 #include <stdio.h>
 
-char *ssid = "dfn-06184";
-char *pass = "2ddc-cy79-omp4-cpxg";
+char *ssid = "";
+char *pass = "";
 
 void connect() {
     WiFi.mode(WIFI_STA);

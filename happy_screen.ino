@@ -1,24 +1,5 @@
 #include <EEPROM.h>
 
-/*
-   Inkplate_SD_BMP example for e-radionica Inkplate6
-   For this example you will need a micro USB cable, Inkplate6 and a SD card loaded with
-   image1.bmp and image2.bmp file that can be found inside folder of this example.
-   Select "Inkplate 6(ESP32)" from Tools -> Board menu.
-   Don't have "Inkplate 6(ESP32)" option? Follow our tutorial and add it:
-   https://e-radionica.com/en/blog/add-inkplate-6-to-arduino-ide/
-   To work with SD card on Inkplate, you will need to add one extra library.
-   Download and install it from here: https://github.com/e-radionicacom/Inkplate-6-SDFat-Arduino-Library
-   You can open .bmp, .jpeg or .png files that have color depth of 1 bit (BW bitmap), 4 bit, 8 bit and
-   24 bit AND have resoluton smaller than 800x600 or otherwise it won't fit on screen.
-   Format your SD card in standard FAT fileformat.
-   This example will show you how you can read .bmp and .jpeg files (pictures) from SD card and
-   display that image on e-paper display.
-   Want to learn more about Inkplate? Visit www.inkplate.io
-   Looking to get support? Write on our forums: http://forum.e-radionica.com/en/
-   15 July 2020 by e-radionica.com
-*/
-
 // Next 3 lines are a precaution, you can ignore those, and the example would also work without them
 #ifndef ARDUINO_ESP32_DEV
 #error "Wrong board selection for this example, please select Inkplate 6 in the boards menu."
@@ -116,8 +97,6 @@ double seconds_to_hour(int hour) {
     Serial.println(asctime(&now_time));
     Serial.println(asctime(&specific_hour_time));
 
-    //display.println(asctime(&specific_hour_time));
-
     double delta = difftime(mktime(&specific_hour_time), now);
     Serial.println(delta);
     if (delta < 0) {
@@ -171,8 +150,6 @@ void setup()
     Serial.println("Going to sleep for seconds");
     Serial.println(time_to_change);
 
-    //esp_deep_sleep(time_to_four * 1000 * 1000);
-    //esp_deep_sleep_start();
     esp_sleep_enable_timer_wakeup(time_to_change * 1000 * 1000);
     esp_deep_sleep_start(); 
 }
